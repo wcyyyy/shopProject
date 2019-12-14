@@ -1,12 +1,12 @@
 <template>
   <section class="profile">
     <Header title="个人"></Header>
-    <section class="profile-number">
+    <section class="profile-number"  @click="login">
       <a href="javascript:" class="profile-link">
         <div class="profile_image">
           <i class="iconfont icon-person"></i>
         </div>
-        <div class="user-info" @click="login">
+        <div class="user-info">
           <p class="user-info-top">登录/注册</p>
           <p>
             <span class="user-icon">
