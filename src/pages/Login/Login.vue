@@ -12,14 +12,14 @@
         <form>
           <div :class="{on:isShowSms}" @click="isShowSms=true">
             <section class="login_message">
-              <input type="tel" maxlength="11" placeholder="手机号" v-model="phone">
+              <input type="tel" maxlength="11" placeholder="手机号" name="phone" v-model="phone" v-validate="'required|mobile'">
               <button 
-                :disabled="!isRightPhone" 
+                :disabled="!isRightPhone||computeTime>0" 
                 class="get_verification"
                 :class="{right_phone_number:isRightPhone}"
                 @click.prevent="sendCode"
               >
-              获取验证码
+              {{computeTime>0?`短信已发送(${computeTime}s)`:"发送验证码"}}
               </button>
               <span style="color: red;" v-show="errors.has('phone')">{{ errors.first('phone') }}</span>
             </section>
@@ -49,7 +49,7 @@
               </section>
               <section class="login_message">
                 <input type="text" maxlength="11" placeholder="验证码">
-                <img class="get_verification" src="../../images/captcha.svg" alt="captcha">
+                <img class="get_verification" src="http://localhost:4000/captcha" alt="captcha" @click="updateSrc" ref="captcha">
               </section>
             </section>
           </div>
@@ -65,6 +65,8 @@
 </template>
 
 <script>
+import {Toast,MessageBox} from 'mint-ui';
+import {reqSendCode} from '../../api/index'
 export default {
   name:'Login',
   data(){
@@ -85,8 +87,21 @@ export default {
     }
   },
   methods:{
-    sendCode(){
-      alert('验证码已发送')
+    async sendCode(){
+      this.computeTime=10
+      let timer=setInterval(() => {
+        this.computeTime--
+        if(this.computeTime===0){
+          clearInterval(timer)
+        }
+      }, 1000);
+      const result=await reqSendCode(this.phone)
+      if(result.code===0){
+        Toast('短信发送成功');
+      }else{
+        this.computeTime=0
+        MessageBox('提示', '短信验证码发送失败');
+      }
     },
     async login () {
         // 进行前台表单验证
@@ -101,6 +116,10 @@ export default {
         if (success) {
           alert('发送登陆的请求')
         }
+      },
+      // 点击更新验证码
+      updateSrc(){
+        this.$refs.captcha.src="http://localhost:4000/captcha?"+Date.now()
       }
   }
 }
