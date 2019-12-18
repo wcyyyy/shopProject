@@ -9,6 +9,7 @@ import './validate'
 import Stars from './components/Stars/Stars'
 import * as API from '@/api'
 import i18n from './i18n'
+import '@/mock/mock-server.js'
 
 Vue.prototype.$API=API
 

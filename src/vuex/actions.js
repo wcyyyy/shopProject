@@ -2,7 +2,10 @@ import {
   reqAddress,
   reqShops,
   reqCategorys,
-  reqAutoLogin
+  reqAutoLogin,
+  reqGoods,
+  reqRatings,
+  reqInfo
 } from '@/api'
 import {
   RECEIVE_ADDRESS,
@@ -11,7 +14,10 @@ import {
   RECEIVE_USER,
   RECEIVE_TOKEN,
   RESET_USER,
-  RESET_TOKEN
+  RESET_TOKEN,
+  RECEIVE_GOODS,
+  RECEIVE_RATINGS,
+  RECEIVE_INFO,
 } from './mutation-types'
 export default {
   // 获取当前地址信息的异步action
@@ -61,10 +67,8 @@ export default {
   async autoLogin({commit,state}){
     if(state.token&&!state.user._id){  //只有token没有用户信息的时候可以
       const result=await reqAutoLogin()
-      console.log(result)
       if(result.code===0){
         const user=result.data
-        console.log(user)
         commit(RECEIVE_USER,{user})
       }
     }
@@ -74,6 +78,33 @@ export default {
     localStorage.removeItem('token_key')
     commit(RESET_TOKEN)
     commit(RESET_USER)
-  }
+  },
+  //异步获取goods
+  async getGoods({commit},callback){
+    const result=await reqGoods()
+    if(result.code===0){
+      const goods=result.data
+      commit(RECEIVE_GOODS,goods)
+    }
+    typeof callback === 'function' && callback()
+  },
+  // 异步获取ratings
+  async getRatings({commit},callback){
+    const result=await reqRatings()
+    if(result.code===0){
+      const ratings=result.data
+      commit(RECEIVE_RATINGS,ratings)
+    }
+    typeof callback === 'function' && callback()
+  },
+  // 异步获取info
+  async getInfo({commit},callback){
+    const result=await reqInfo()
+    if(result.code===0){
+      const info=result.data
+      commit(RECEIVE_INFO,{info})
+    }
+    typeof callback === 'function' && callback()
+  },
 }
 

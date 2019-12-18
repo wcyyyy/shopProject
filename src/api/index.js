@@ -24,3 +24,11 @@ export const reqPwdLogin = ({name, pwd, captcha}) => ajax.post('/login_pwd', {na
 export const reqSmsLogin = ({phone,code}) => ajax.post('/login_sms', {phone,code})
 // 自动登录
 export const reqAutoLogin = () => ajax.get('/auto_login')
+// 请求商家商品列表
+export const reqGoods=()=>ajax('/goods')
+// 请求商家评价
+export const reqRatings=()=>ajax('/ratings')
+// 请求商家信息
+export const reqInfo=()=>ajax('/info')
+
+
