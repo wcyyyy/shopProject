@@ -1,18 +1,18 @@
 <template>
   <section class="profile">
     <Header title="个人"></Header>
-    <section class="profile-number"  @click="login">
+    <section class="profile-number" @click="$router.push(user._id?'/userInfo':'/login')">
       <a href="javascript:" class="profile-link">
         <div class="profile_image">
           <i class="iconfont icon-person"></i>
         </div>
         <div class="user-info">
-          <p class="user-info-top">登录/注册</p>
-          <p>
+          <p class="user-info-top" v-if="!user.phone">{{user.name?user.name:'登录/注册'}}</p>
+          <p v-if="!user.name">
             <span class="user-icon">
               <i class="iconfont icon-shouji icon-mobile"></i>
             </span>
-            <span class="icon-mobile-number">暂无绑定手机号</span>
+            <span class="icon-mobile-number">{{user.phone?user.phone:'暂无绑定手机号'}}</span>
           </p>
         </div>
         <span class="arrow">
@@ -88,14 +88,34 @@
         </div>
       </a>
     </section>
+    <mt-button 
+      type="danger" 
+      size="large"
+      @click="logout"
+      v-if="user"
+    >
+      退出登录
+    </mt-button>
   </section>
 </template>
 
 <script>
+  import {mapState} from 'vuex'
+  import { Button,MessageBox } from 'mint-ui';
   export default {
+    computed:{
+      ...mapState(['user'])
+    },
     methods:{
-      login(){
-        this.$router.push('/login')
+      logout(){
+        MessageBox.confirm('确定执行此操作?').then(
+          ()=>{//确定
+            this.$store.dispatch('logout')
+          },
+          ()=>{//取消
+            console.log('点击了取消')
+          }
+        ); 
       }
     },
   }

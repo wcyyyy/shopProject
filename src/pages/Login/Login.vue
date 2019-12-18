@@ -12,7 +12,14 @@
         <form>
           <div :class="{on:isShowSms}" @click="isShowSms=true">
             <section class="login_message">
-              <input type="tel" maxlength="11" placeholder="手机号" name="phone" v-model="phone" v-validate="'required|mobile'">
+              <input 
+                type="tel" 
+                maxlength="11" 
+                placeholder="手机号" 
+                name="phone" 
+                v-model="phone" 
+                v-validate="'required|mobile'"
+              >
               <button 
                 :disabled="!isRightPhone||computeTime>0" 
                 class="get_verification"
@@ -24,7 +31,14 @@
               <span style="color: red;" v-show="errors.has('phone')">{{ errors.first('phone') }}</span>
             </section>
             <section class="login_verification">
-              <input type="tel" maxlength="8" placeholder="验证码">
+              <input type="tel" 
+                maxlength="8" 
+                placeholder="验证码" 
+                name="code" 
+                v-validate="{required: true,regex: /^\d{6}$/}"
+                v-model="code"
+              >
+              <span style="color: red;" v-show="errors.has('code')">{{ errors.first('code') }}</span>
             </section>
             <section class="login_hint">
               温馨提示：未注册硅谷外卖帐号的手机号，登录时将自动注册，且代表已同意
@@ -34,10 +48,25 @@
           <div :class="{on:!isShowSms}" @click="isShowSms=false">
             <section>
               <section class="login_message">
-                <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名">
+                <input 
+                  type="tel" 
+                  maxlength="11" 
+                  placeholder="手机/邮箱/用户名" 
+                  name="name" 
+                  v-validate="'required'" 
+                  v-model="name"
+                >
+                <span style="color: red;" v-show="errors.has('name')">{{ errors.first('name') }}</span>
               </section>
               <section class="login_verification">
-                <input :type="isShowPwd ? 'text' : 'password' " maxlength="8" placeholder="密码">
+                <input :type="isShowPwd ? 'text' : 'password' " 
+                  maxlength="8" 
+                  placeholder="密码" 
+                  name="pwd" 
+                  v-validate="'required'"
+                  v-model="pwd"
+                >
+                <span style="color: red;" v-show="errors.has('pwd')">{{ errors.first('pwd') }}</span>
                 <div 
                   class="switch_button off" 
                   :class="isShowPwd ? 'on':'off'"
@@ -48,8 +77,15 @@
                 </div>
               </section>
               <section class="login_message">
-                <input type="text" maxlength="11" placeholder="验证码">
+                <input type="text" 
+                  maxlength="11" 
+                  placeholder="验证码" 
+                  name="captcha" 
+                  v-model="captcha"
+                  v-validate="{required: true,regex: /^[0-9a-zA-Z]{4}$/}"
+                  >
                 <img class="get_verification" src="http://localhost:4000/captcha" alt="captcha" @click="updateSrc" ref="captcha">
+                <span style="color: red;" v-show="errors.has('captcha')">{{ errors.first('captcha') }}</span>
               </section>
             </section>
           </div>
@@ -66,13 +102,13 @@
 
 <script>
 import {Toast,MessageBox} from 'mint-ui';
-import {reqSendCode} from '../../api/index'
 export default {
   name:'Login',
   data(){
     return {
       isShowSms:true,
       phone:'',//手机号
+      code:'',//验证码
       isShowPwd:false, //是否显示密码
       name:'',//用户名
       pwd:'',//密码
@@ -95,7 +131,7 @@ export default {
           clearInterval(timer)
         }
       }, 1000);
-      const result=await reqSendCode(this.phone)
+      const result=await this.$API.reqSendCode(this.phone)
       if(result.code===0){
         Toast('短信发送成功');
       }else{
@@ -113,8 +149,29 @@ export default {
         }
 
         const success = await this.$validator.validateAll(names) // 对指定的所有表单项进行验证
+        let result
         if (success) {
-          alert('发送登陆的请求')
+          
+          const {phone,code,name,pwd,captcha}=this
+          if(this.isShowSms){
+            // 手机验证码登录
+            result=await this.$API.reqSmsLogin({phone,code})
+          }else{
+            // 密码登录
+           
+            result=await this.$API.reqPwdLogin({name,pwd,captcha})
+              this.updateSrc() // 更新图形验证码
+              this.captcha = ''
+          }
+           // 根据请求的结果做不同的处理
+          if(result.code===0){            
+            const user = result.data
+            // 保存到state
+            this.$store.dispatch('saveUser', user)
+            this.$router.replace('/profile')
+          }else{
+            MessageBox('提示', '登陆失败');
+          }
         }
       },
       // 点击更新验证码

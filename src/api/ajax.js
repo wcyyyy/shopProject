@@ -8,6 +8,10 @@
 */
 import axios from 'axios'
 import qs from 'qs'
+import { Indicator, Toast, MessageBox } from 'mint-ui'
+import store from '@/vuex/store'
+import router from '@/router'
+
 
 const instance = axios.create({
   // baseURL: 'http://localhost:4000', // 出跨域请求问题
@@ -24,6 +28,21 @@ instance.interceptors.request.use((config) => {
     config.data = qs.stringify(data)
   }
 
+  // 5. 通过请求头携带token数据
+  const token = store.state.token
+  if (token) {
+    config.headers['Authorization'] = token
+  }else{
+     // 如果当前接口需要token校验, 但没有token, 不发请求, 进入错误流程
+     // 如果没有token, 但又需要token校验, 不能发请求
+     const needCheck=config.headers.needCheck
+     if(needCheck){
+       throw new Error('没有登录，不能请求')
+     }
+
+
+  }
+
   return config
 })
 
@@ -37,10 +56,31 @@ instance.interceptors.response.use(
     return response.data
   },
   error => {
+    const response = error.response //没有发请求也就没有错误的响应
+    if(!response){//如果不在登录页面跳转到登录页面
+      const path=router.currentRoute.path
+      if(path!=='/login'){
+        router.replace('/login')
+        Toast(error.message)
+      }
+    }else{//发了请求
+      // 状态码如果是401，且不再登录页面，退出登录
+      if(error.response.status===401){
+        const path=router.currentRouter.path
+        if(path!=='/login')
+        store.dispatch('logout')
+        router.replace('/login')
+        Toast(error.response.data.message||'登录失效，请重新登录')
+      }else if(error.response.status===404){
+        MessageBox('请求资源不存在')
+      }else{
 
-    // return Promise.reject(error)
-    // 1. 统一处理请求异常
-    alert('请求出错: ' + error.message)
+        // return Promise.reject(error)
+        // 1. 统一处理请求异常
+        MessageBox('请求出错: ' + error.message)
+      }
+    }
+   
     return new Promise(() => {}) // 返回一个pending状态的promise => 中断promie链
   }
 )
