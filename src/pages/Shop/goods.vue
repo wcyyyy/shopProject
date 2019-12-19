@@ -22,7 +22,12 @@
           <li class="food-list-hook" v-for="(good,index) in goods" :key="index">
             <h1 class="title">{{good.name}}</h1>
             <ul>
-              <li class="food-item bottom-border-1px" v-for="(food,index) in good.foods" :key="index">
+              <li 
+                class="food-item bottom-border-1px" 
+                v-for="(food,index) in good.foods" 
+                :key="index"
+                @click="showFood(food)"
+              >
                 <div class="icon">
                   <img width="57" height="57" :src="food.icon">
                 </div>
@@ -37,7 +42,7 @@
                     <span class="old" v-if="food.oldPrice">￥{{food.oldPrice}}</span>
                   </div>
                   <div class="cartcontrol-wrapper">
-                    CartControl组件
+                    <CartControl :food="food"/>
                   </div>
                 </div>
               </li>
@@ -46,23 +51,26 @@
         </ul>
       </div>
     </div>
+    <Food :food="food" ref="food"></Food>
   </div>
 </template>
 
 <script>
 import BScroll from 'better-scroll'
 import {mapState} from 'vuex'
+import Food from '../../components/Food/Food'
 export default {
   data(){
     return {
       // 右侧滑动的top值
       scrollY:0,
       // 每个li的top值的数组，第一次列表显示后不再统计
-      tops:[]
+      tops:[],
+      food:{}
     }
   },
   computed:{
-    ...mapState(['goods']),
+    ...mapState(['goods']),  
     currentIndex(){
       const {scrollY,tops}=this
       const index = tops.findIndex((top,index)=> scrollY>=top && scrollY<tops[index+1])
@@ -110,6 +118,10 @@ export default {
       console.log(top)
       this.scrollY=top
       this.rightScroll.scrollTo(0,-top,300)
+    },
+    showFood(food){
+      this.food=food
+      this.$refs.food.toggleShow()
     }
   },
   watch:{
@@ -119,7 +131,8 @@ export default {
         this.initTops()
       })
     }
-  }
+  },
+  components:{Food}
 }
 </script>
 

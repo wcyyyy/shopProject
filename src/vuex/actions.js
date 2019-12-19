@@ -18,6 +18,8 @@ import {
   RECEIVE_GOODS,
   RECEIVE_RATINGS,
   RECEIVE_INFO,
+  ADD_FOOD_COUNT,
+  REDUCE_FOOD_COUNT
 } from './mutation-types'
 export default {
   // 获取当前地址信息的异步action
@@ -106,5 +108,13 @@ export default {
     }
     typeof callback === 'function' && callback()
   },
+  // 更新food中的count
+  updateFoodCount({commit},{isAdd,food}){
+    if(isAdd){
+      commit(ADD_FOOD_COUNT,{food})
+    }else{
+      commit(REDUCE_FOOD_COUNT,{food})
+    }
+  }
 }
 
